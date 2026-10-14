@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Hyrox Girls</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* Layout: app mobile-first a colonna singola (max 480px), header + contenuto + barra di navigazione fissa in basso */
+:root {
+  --bg: #FFF6F7; --surface: #FFFFFF; --fg: #2B1A22; --muted: #86606F; --soft: #5E4450;
+  --line: #F2DCE2; --line2: #E3C3CD; --accent: #C2255C; --on-accent: #FFFFFF;
+  --pred: #7C5CD6; --tint: #FBE3EA; --tint-fg: #8A2347; --warn-bg: #FDE8EE; --err: #B42318;
+  --shadow: 0 2px 12px rgba(194, 37, 92, 0.08);
+  --display: "Outfit", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body: "Nunito Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1B1216; --surface: #261A20; --fg: #F6E9EE; --muted: #B996A5; --soft: #D9C0CA;
+  --line: #3A2830; --line2: #4E3540; --accent: #F0628F; --on-accent: #1B1216;
+  --pred: #A893F0; --tint: #3A2430; --tint-fg: #F5B9CD; --warn-bg: #3A2028; --err: #FF8A80;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.35); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1B1216; --surface: #261A20; --fg: #F6E9EE; --muted: #B996A5; --soft: #D9C0CA;
+  --line: #3A2830; --line2: #4E3540; --accent: #F0628F; --on-accent: #1B1216;
+  --pred: #A893F0; --tint: #3A2430; --tint-fg: #F5B9CD; --warn-bg: #3A2028; --err: #FF8A80;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.35); color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.45 }
+button, input, select { font: inherit; color: inherit }
+.app { max-width: 480px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 96px }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 14px 10px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 10px }
+.brand { font-family: var(--display); font-weight: 800; font-size: 26px; color: var(--accent); letter-spacing: -0.3px; line-height: 1 }
+.sub { font-size: 12px; color: var(--muted) }
+main { display: flex; flex-direction: column; gap: 14px; padding-top: 14px }
+.card { background: var(--surface); border-radius: 22px; box-shadow: var(--shadow); padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0 }
+.eyebrow { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700 }
+h2 { font-family: var(--display); font-size: 20px; font-weight: 700; margin: 4px 0 0; text-wrap: balance }
+.big { font-family: var(--display); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums }
+.num { font-family: var(--display); font-weight: 600; font-variant-numeric: tabular-nums }
+.muted { color: var(--muted) } .soft { color: var(--soft) } .small { font-size: 12px } .pred { color: var(--pred) }
+.row { display: flex; gap: 10px; align-items: center } .between { justify-content: space-between } .wrap { flex-wrap: wrap }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
+.av { border-radius: 50%; object-fit: cover; flex: 0 0 auto; background: var(--tint); color: var(--tint-fg); display: inline-flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 700 }
+.btn { min-height: 44px; border-radius: 12px; border: 1px solid var(--line2); background: transparent; padding: 0 14px; cursor: pointer; font-weight: 600 }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent) }
+.btn.danger { color: var(--err) }
+.btn.dashed { border-style: dashed; width: 100% }
+.btn:focus-visible, .pill:focus-visible, .chip:focus-visible, nav a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--pred); outline-offset: 2px }
+.pill { min-height: 44px; border-radius: 22px; border: 1px solid var(--line2); background: var(--surface); padding: 0 14px 0 5px; display: inline-flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer }
+.pill.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent) }
+.chip { min-height: 44px; border-radius: 12px; border: 1px solid var(--line2); background: var(--surface); font-size: 13px; font-weight: 600; cursor: pointer; padding: 0 4px }
+.chip.on { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: var(--surface); border-radius: 14px; padding: 4px; box-shadow: var(--shadow) }
+.seg button { min-height: 40px; border: 0; border-radius: 10px; background: transparent; font-weight: 700; font-size: 13px; cursor: pointer }
+.seg button.on { background: var(--fg); color: var(--bg) }
+.list { display: flex; flex-direction: column } .list > * { padding: 10px 0; border-bottom: 1px solid var(--line) } .list > *:last-child { border-bottom: 0 }
+.tile { background: var(--surface); border-radius: 18px; box-shadow: var(--shadow); padding: 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0 }
+.notice { background: var(--warn-bg); color: var(--tint-fg); border-radius: 14px; padding: 10px 12px; font-size: 13px }
+.err { color: var(--err); font-size: 13px }
+label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); min-width: 0 }
+input.i, select.i { height: 44px; border-radius: 10px; border: 1px solid var(--line2); background: var(--bg); padding: 0 10px; font-size: 15px; width: 100%; min-width: 0 }
+.bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden } .bar > div { height: 100%; background: var(--accent); border-radius: 5px }
+.mx { display: grid; grid-template-columns: 56px repeat(4, minmax(0, 1fr)); gap: 4px; font-size: 12px }
+.mx > div { padding: 8px 2px; text-align: center; border-radius: 8px; font-variant-numeric: tabular-nums }
+.mx .best { background: var(--accent); color: var(--on-accent); font-weight: 700 }
+.bubble { max-width: 86%; padding: 10px 12px; border-radius: 18px; font-size: 14px; white-space: pre-line }
+.bubble.me { align-self: flex-end; background: var(--accent); color: var(--on-accent); border-bottom-right-radius: 4px }
+.bubble.bot { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px }
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px) }
+nav.tabs .in { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) }
+nav.tabs a { min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: var(--muted); font-size: 11px; font-weight: 700 }
+nav.tabs a::before { content: ""; width: 22px; height: 3px; border-radius: 2px; background: transparent }
+nav.tabs a.on { color: var(--fg) } nav.tabs a.on::before { background: var(--accent) }
+svg text { font-family: var(--body) }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important } }
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} body{margin:0} img{max-width:100%} [hidden]{display:none!important}</style>
+</head>
+<body>
+
+
+<div class="app">
+  <header class="top">
+    <div><div class="brand">Hyrox Girls</div><div class="sub" id="subtitle">Panoramica della squadra</div></div>
+    <button class="btn" id="reload" aria-label="Aggiorna i dati">Aggiorna</button>
+  </header>
+  <main id="view"><div class="card"><div class="muted">Carico i dati della squadra…</div></div></main>
+</div>
+<nav class="tabs" aria-label="Sezioni"><div class="in" id="tabs"></div></nav>
+
+<script>
+(function () {
+  "use strict";
+  var SB = "https://c--97b0953b-44bf-4cac-b7fa-b7c318bdd56e-prod.lovable.cloud";
+  var KEY = "sb_publishable_XV6aUOPXwTbGoz1_x5slcA_28u7Ss_7";
+  var DAY = 86400000;
+  var START = new Date("2026-09-01T12:00:00");
+  var RACE = new Date("2027-05-27T12:00:00");
+  var RACE_W = (RACE - START) / (7 * DAY);
+  var MESI = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+  var SHORT = { run: "Corsa", skierg: "SkiErg", sled_push: "Sled Push", sled_pull: "Sled Pull", burpee_bj: "Burpee", row: "Rowing", farmers: "Farmers", lunges: "Lunges", wall_balls: "Wall Balls", other: "Altro", sim_full: "Simulazione" };
+  var ORDER = ["run","skierg","sled_push","sled_pull","burpee_bj","row","farmers","lunges","wall_balls"];
+  var BLOCKS = [
+    { n: 1, ex: ["skierg","sled_push"], label: "SkiErg + Sled Push" },
+    { n: 2, ex: ["sled_pull","burpee_bj"], label: "Sled Pull + Burpee" },
+    { n: 3, ex: ["row","farmers"], label: "Rowing + Farmers" },
+    { n: 4, ex: ["lunges","wall_balls"], label: "Lunges + Wall Balls" }
+  ];
+  var TABS = [["squadra","Squadra"],["atleta","Atleta"],["staffetta","Staffetta"],["dati","Dati"],["bot","Bot"]];
+  var TITLES = { squadra: "Panoramica della squadra", atleta: "Andamento e previsioni", staffetta: "Chi fa cosa nella staffetta", dati: "Gestione dati", bot: "Come si usa il bot Telegram" };
+
+  var S = { tab: "squadra", ath: null, ex: "row", dataTab: "risultati", filter: "all", showN: 15, form: null, confirmDel: null, msg: "", err: "", pwAsk: null, busy: false, importRes: null, runs: null,
+    data: null, loadErr: "" };
+
+  function store(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { return null; } }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+  function fmt(s) { if (s == null || !isFinite(s)) return "–"; s = Math.round(s); var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return h ? h + ":" + pad2(m) + ":" + pad2(x) : m + ":" + pad2(x); }
+  function fmtP(s) { if (s == null || !isFinite(s)) return "–"; var c = Math.round(s * 100) % 100; if (!c || s >= 600) return fmt(s); var w = Math.floor(s); return Math.floor(w / 60) + ":" + pad2(w % 60) + "," + pad2(c); }
+  function pd(s) { return new Date(s + "T12:00:00"); }
+  function wk(s) { return (pd(s) - START) / (7 * DAY); }
+  function dl(s) { var d = pd(s); return d.getDate() + " " + MESI[d.getMonth()].slice(0, 3); }
+  function iso(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
+  function phraseWeek(w) { var d = new Date(START.getTime() + w * 7 * DAY), g = d.getDate(); return (g <= 10 ? "inizio " : g <= 20 ? "metà " : "fine ") + MESI[d.getMonth()]; }
+  function parseTime(v) {
+    v = String(v || "").trim().replace(",", ".");
+    var m = /^(\d+):([0-5]\d):([0-5]\d(?:\.\d{1,2})?)$/.exec(v); if (m) return +m[1] * 3600 + +m[2] * 60 + +m[3];
+    m = /^(\d+)[:.]([0-5]\d)(?:\.(\d{1,2}))?$/.exec(v); if (m) return +m[1] * 60 + +m[2] + (m[3] ? +("0." + m[3]) : 0);
+    m = /^(\d+(?:\.\d+)?)\s*s?$/.exec(v); if (m) return +m[1];
+    return null;
+  }
+
+  /* ---------- dati ---------- */
+  function api(path, body) {
+    var opt = { headers: { apikey: KEY, "Content-Type": "application/json" }, cache: "no-store" };
+    if (body !== undefined) { opt.method = "POST"; opt.body = JSON.stringify(body); }
+    return fetch(SB + "/rest/v1/" + path, opt).then(function (r) {
+      return r.text().then(function (t) {
+        var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) { j = t; }
+        if (!r.ok) { var msg = (j && j.message) || ("Errore " + r.status); var e2 = new Error(msg); e2.pw = /password_errata/.test(msg); throw e2; }
+        return j;
+      });
+    });
+  }
+  function rpc(name, args) { return api("rpc/" + name, args || {}); }
+  function load() {
+    S.loadErr = "";
+    return Promise.all([
+      api("results?select=*&order=performed_on.desc,created_at.desc"),
+      api("exercises?select=*&order=sort_order"),
+      rpc("hg_athletes")
+    ]).then(function (r) {
+      S.data = { results: r[0].map(function (x) { return Object.assign({}, x, { seconds: Number(x.seconds) }); }), exercises: r[1], athletes: r[2] };
+      if (!S.ath || !S.data.athletes.some(function (a) { return a.id === S.ath; })) { var f = S.data.athletes.filter(function (a) { return a.active; })[0]; S.ath = f ? f.id : null; }
+    }).catch(function (e) { S.loadErr = e.message || "Errore di rete"; });
+  }
+  function exInfo(code) {
+    var e = (S.data && S.data.exercises || []).filter(function (x) { return x.code === code; })[0] || { code: code };
+    return { code: code, name: e.name || SHORT[code] || code, short: SHORT[code] || e.name || code, amount: e.official_amount != null ? Number(e.official_amount) : null, unit: e.amount_unit === "rep" ? "rip." : "m", load: e.official_load_kg != null ? Number(e.official_load_kg) : null, spec: e.official_spec || "" };
+  }
+  function athlete(id) { return (S.data && S.data.athletes || []).filter(function (a) { return a.id === id; })[0] || { display_name: "?" }; }
+  function avatar(a, size) {
+    var s = size + "px";
+    if (a && a.photo_url) return '<img class="av" src="' + esc(a.photo_url) + '" alt="" style="width:' + s + ';height:' + s + '">';
+    return '<span class="av" aria-hidden="true" style="width:' + s + ';height:' + s + ';font-size:' + Math.round(size * 0.4) + 'px">' + esc((a && a.display_name || "?").charAt(0).toUpperCase()) + "</span>";
+  }
+
+  /* ---------- modello di previsione ---------- */
+  function model(aid, code) {
+    var off = exInfo(code);
+    var all = S.data.results.filter(function (r) { return r.athlete_id === aid && r.exercise_code === code && r.seconds > 0; });
+    var pts = all.filter(function (p) { return p.official_equipment !== false && p.amount != null && Number(p.amount) > 0 && off.amount; });
+    var other = all.length - pts.length;
+    if (!pts.length) return { empty: true, other: other };
+    var refW = Math.max.apply(null, pts.map(function (p) { return wk(p.performed_on); }));
+    var rows = pts.map(function (p) {
+      var f = Math.min(1, Number(p.amount) / off.amount);
+      var lr = off.load ? Math.min(1, (Number(p.load_kg) || off.load) / off.load) : 1;
+      var est = p.seconds / Math.pow(f, 1.06) / (0.7 + 0.3 * lr);
+      var w0 = Math.max(0, wk(p.performed_on));
+      return { wk: w0, x: Math.log(1 + w0), est: est, wt: Math.max(0.02, f * lr * lr * Math.exp(-((refW - w0) * 7) / 120)), partial: f < 0.999 || lr < 0.95, p: p, f: f, lr: lr };
+    });
+    var sw = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    rows.forEach(function (r) { sw += r.wt; sx += r.wt * r.x; sy += r.wt * r.est; sxx += r.wt * r.x * r.x; sxy += r.wt * r.x * r.est; });
+    var mx = sx / sw, my = sy / sw, vx = sxx / sw - mx * mx;
+    var b = vx > 0.01 ? (sxy / sw - mx * my) / vx : 0; b = Math.min(0, b);
+    var dates = {}; rows.forEach(function (r) { dates[r.p.performed_on] = 1; });
+    var wks = rows.map(function (r) { return r.wk; });
+    var span = (Math.max.apply(null, wks) - Math.min.apply(null, wks)) * 7;
+    var nDates = Object.keys(dates).length;
+    var trendOk = nDates >= 3 && span >= 14;
+    if (!trendOk) b = 0;
+    var a = my - b * mx, res = 0;
+    rows.forEach(function (r) { var e = r.est - (a + b * r.x); res += r.wt * e * e; });
+    var s = Math.max(Math.sqrt(res / sw), 0.02 * a);
+    var lastW = Math.max.apply(null, wks);
+    var predAt = function (w) { return a + b * Math.log(1 + w); };
+    var predRace = predAt(RACE_W);
+    var band = s + 0.04 * predRace + (rows.length < 4 ? 0.04 * predRace : 0);
+    var fulls = rows.filter(function (r) { return r.f >= 0.999 && r.lr >= 0.95; });
+    var pb = fulls.length ? Math.min.apply(null, fulls.map(function (r) { return r.p.seconds; })) : null;
+    var last = pts.slice().sort(function (x, y) { return x.performed_on < y.performed_on ? 1 : x.performed_on > y.performed_on ? -1 : (x.created_at < y.created_at ? 1 : -1); })[0];
+    var first = rows.slice().sort(function (x, y) { return x.wk - y.wk; })[0];
+    return { a: a, b: b, s: s, rows: rows, lastW: lastW, predAt: predAt, predRace: predRace, band: band, pb: pb, last: last, off: off, trendOk: trendOk, nDates: nDates, span: Math.round(span), other: other,
+      gain: first ? (first.est - predAt(lastW)) / first.est : 0, loads: pts.filter(function (p) { return p.load_kg != null; }) };
+  }
+  function allModels() {
+    var M = {};
+    S.data.athletes.forEach(function (a) { M[a.id] = {}; ORDER.forEach(function (c) { M[a.id][c] = model(a.id, c); }); });
+    return M;
+  }
+  function blockTime(M, aid, blk) {
+    var p = [M[aid][blk.ex[0]], M[aid][blk.ex[1]], M[aid].run];
+    if (p.some(function (m) { return !m || m.empty; })) return null;
+    return p[0].predRace + p[1].predRace + 2 * p[2].predRace;
+  }
+  function perms(arr) { var out = []; (function rec(pre, rest) { if (pre.length === 4) { out.push(pre); return; } rest.forEach(function (x, i) { rec(pre.concat([x]), rest.slice(0, i).concat(rest.slice(i + 1))); }); })([], arr); return out; }
+  function formations(M) {
+    var act = S.data.athletes.filter(function (a) { return a.active; }).map(function (a) { return a.id; });
+    if (act.length < 4) return [];
+    var out = [];
+    perms(act).forEach(function (p) { var t = 0, ok = true; BLOCKS.forEach(function (b, i) { var x = blockTime(M, p[i], b); if (x == null) ok = false; else t += x; }); if (ok) out.push({ p: p, total: t }); });
+    return out.sort(function (x, y) { return x.total - y.total; });
+  }
+
+  /* ---------- schermate ---------- */
+  function extra(r) {
+    var off = exInfo(r.exercise_code), b = [];
+    if (r.amount != null && off.amount && Number(r.amount) !== off.amount) b.push(Number(r.amount) + " " + off.unit);
+    if (r.amount == null && r.distance_m) b.push(Number(r.distance_m) + " m");
+    if (r.reps && off.unit !== "rip.") b.push(Number(r.reps) + " rip.");
+    if (r.load_kg != null) b.push(Number(r.load_kg) + " kg");
+    if (r.resistance) b.push("res. " + Number(r.resistance));
+    if (r.speed_kmh) b.push(Number(r.speed_kmh) + " km/h");
+    if (r.official_equipment === false) b.push("attrezzo non ufficiale");
+    if (r.note) b.push(r.note);
+    b.push(r.source === "excel" ? "Excel" : r.source === "telegram" ? "Telegram" : "Manuale");
+    return " · " + b.join(" · ");
+  }
+  function resultRow(r, actions) {
+    var a = athlete(r.athlete_id);
+    var h = '<div><div class="row between"><div style="min-width:0"><div style="font-weight:700">' + esc(a.display_name) + " · " + esc(exInfo(r.exercise_code).short) + '</div><div class="small muted">' + esc(dl(r.performed_on) + extra(r)) + '</div></div><div class="num" style="font-size:22px">' + fmtP(r.seconds) + "</div></div>";
+    if (actions) {
+      if (S.confirmDel === r.id) h += '<div class="row" style="margin-top:8px"><span class="err" style="flex:1">Eliminare questo risultato?</span><button class="btn primary" data-act="del-yes" data-id="' + r.id + '">Elimina</button><button class="btn" data-act="del-no">No</button></div>';
+      else h += '<div class="row" style="margin-top:8px"><button class="btn" data-act="edit" data-id="' + r.id + '">Modifica</button><button class="btn danger" data-act="del" data-id="' + r.id + '">Elimina</button></div>';
+    }
+    return h + "</div>";
+  }
+
+  function viewSquadra() {
+    var M = allModels(), F = formations(M), act = S.data.athletes.filter(function (a) { return a.active; });
+    var days = Math.max(0, Math.ceil((RACE - new Date()) / DAY));
+    var h = '<section class="card"><div class="eyebrow">Rimini Wellness · 27–30 maggio 2027</div><div class="row" style="align-items:baseline"><span class="big" style="font-size:60px;color:var(--accent)">' + days + '</span><span class="soft">giorni alla gara</span></div><div class="small muted">' + Math.floor(days / 7) + ' settimane di allenamento</div><div class="row wrap" style="gap:12px;margin-top:6px">';
+    act.forEach(function (a) { h += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">' + avatar(a, 56) + '<span class="small" style="font-weight:700">' + esc(a.display_name) + "</span></div>"; });
+    h += "</div></section>";
+    h += '<section class="card"><div class="eyebrow">Tempo staffetta previsto a Rimini</div><div class="big" style="font-size:42px">' + (F.length ? fmt(F[0].total) : "–") + '</div><div class="small soft">' + (F.length ? "Con la formazione migliore secondo i dati di oggi, transizioni escluse." : "Non ancora calcolabile: mancano prove su alcune stazioni.") + '</div><a class="btn" href="#staffetta" style="align-self:flex-start;display:inline-flex;align-items:center;text-decoration:none">Vedi la staffetta</a></section>';
+    h += '<h2>Le ragazze</h2><div class="grid2">';
+    act.forEach(function (a) {
+      var mine = S.data.results.filter(function (r) { return r.athlete_id === a.id; });
+      var lastD = mine.reduce(function (m, r) { return r.performed_on > m ? r.performed_on : m; }, "");
+      var best = null; ORDER.forEach(function (c) { var m = M[a.id][c]; if (m && !m.empty && m.trendOk && m.gain > 0 && (!best || m.gain > best.g)) best = { g: m.gain, n: SHORT[c] }; });
+      h += '<a class="tile" href="#atleta" data-act="open-ath" data-id="' + a.id + '" style="text-decoration:none;color:inherit"><div class="row">' + avatar(a, 44) + '<span class="num" style="font-size:20px;font-weight:700">' + esc(a.display_name) + '</span></div><div class="small muted">' + mine.length + ' prove registrate</div><div class="small soft">' + (best ? "Più migliorata: " + esc(best.n) + " −" + Math.round(best.g * 100) + "%" : lastD ? "Ultimo allenamento: " + dl(lastD) : "Nessun allenamento") + "</div></a>";
+    });
+    h += '</div><h2>Ultimi inserimenti</h2><section class="card"><div class="list">';
+    var rec = S.data.results.slice(0, 5);
+    h += rec.length ? rec.map(function (r) { return resultRow(r, false); }).join("") : '<div class="muted">Ancora nessun risultato.</div>';
+    return h + "</div></section>";
+  }
+
+  function chartSvg(m) {
+    var W = 340, H = 210, L = 42, R = 10, T = 14, B = 26, pw = W - L - R, ph = H - T - B, xmax = RACE_W + 1;
+    var X = function (w) { return L + Math.max(0, w) / xmax * pw; };
+    var ys = m.rows.map(function (r) { return r.est; }).concat([m.predRace - m.band, m.predRace + m.band]);
+    var lo = Math.min.apply(null, ys), hi = Math.max.apply(null, ys), pad = (hi - lo) * 0.1 + 3; lo -= pad; hi += pad;
+    var Y = function (v) { return T + (v - lo) / (hi - lo) * ph; };
+    var g = "";
+    [0.15, 0.5, 0.85].forEach(function (t) { var v = lo + (hi - lo) * t, y = Y(v).toFixed(1); g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)"/><text x="' + (L - 6) + '" y="' + (+y + 3) + '" fill="var(--muted)" font-size="10" text-anchor="end">' + fmt(v) + "</text>"; });
+    [["2026-09-01","set"],["2026-11-01","nov"],["2027-01-01","gen"],["2027-03-01","mar"],["2027-05-01","mag"]].forEach(function (p) { g += '<text x="' + X(wk(p[0])).toFixed(1) + '" y="' + (H - 8) + '" fill="var(--muted)" font-size="10" text-anchor="middle">' + p[1] + "</text>"; });
+    var tr = "", pr = "", up = [], dn = [];
+    for (var w = 0; w <= m.lastW + 0.001; w += 0.5) tr += (tr ? "L" : "M") + X(w).toFixed(1) + " " + Y(m.predAt(w)).toFixed(1);
+    tr += "L" + X(m.lastW).toFixed(1) + " " + Y(m.predAt(m.lastW)).toFixed(1);
+    var span = Math.max(1, RACE_W - m.lastW);
+    for (var k = 0; k <= 24; k++) { var ww = m.lastW + span * k / 24, v = m.predAt(ww), bw = m.s + (m.band - m.s) * k / 24; pr += (k ? "L" : "M") + X(ww).toFixed(1) + " " + Y(v).toFixed(1); up.push(X(ww).toFixed(1) + "," + Y(v - bw).toFixed(1)); dn.unshift(X(ww).toFixed(1) + "," + Y(v + bw).toFixed(1)); }
+    var today = Math.min(RACE_W, Math.max(0, (new Date() - START) / (7 * DAY)));
+    g += '<polygon points="' + up.concat(dn).join(" ") + '" fill="var(--pred)" fill-opacity="0.16"/>';
+    g += '<path d="' + tr + '" fill="none" stroke="var(--fg)" stroke-width="2"/><path d="' + pr + '" fill="none" stroke="var(--pred)" stroke-width="2" stroke-dasharray="5 4"/>';
+    g += '<line x1="' + X(today).toFixed(1) + '" x2="' + X(today).toFixed(1) + '" y1="' + T + '" y2="' + (T + ph) + '" stroke="var(--line2)" stroke-dasharray="2 3"/>';
+    g += '<line x1="' + X(RACE_W).toFixed(1) + '" x2="' + X(RACE_W).toFixed(1) + '" y1="' + T + '" y2="' + (T + ph) + '" stroke="var(--accent)" stroke-width="1.5"/><text x="' + (X(RACE_W) - 3).toFixed(1) + '" y="' + (T - 3) + '" fill="var(--accent)" font-size="10" text-anchor="end">Rimini</text>';
+    m.rows.forEach(function (r) { g += r.partial ? '<circle cx="' + X(r.wk).toFixed(1) + '" cy="' + Y(r.est).toFixed(1) + '" r="4" fill="var(--surface)" stroke="var(--fg)" stroke-width="1.5"/>' : '<circle cx="' + X(r.wk).toFixed(1) + '" cy="' + Y(r.est).toFixed(1) + '" r="4" fill="var(--fg)"/>'; });
+    g += '<circle cx="' + X(RACE_W).toFixed(1) + '" cy="' + Y(m.predRace).toFixed(1) + '" r="5" fill="var(--pred)"/>';
+    return '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Andamento e previsione fino a Rimini">' + g + "</svg>";
+  }
+
+  function viewAtleta() {
+    var act = S.data.athletes.filter(function (a) { return a.active; }), a = athlete(S.ath);
+    var h = '<div class="row wrap" style="gap:8px">' + act.map(function (x) { return '<button class="pill' + (x.id === S.ath ? " on" : "") + '" data-act="ath" data-id="' + x.id + '">' + avatar(x, 34) + esc(x.display_name) + "</button>"; }).join("") + "</div>";
+    if (!S.ath) return h + '<div class="card muted">Nessuna atleta attiva.</div>';
+    var n = S.data.results.filter(function (r) { return r.athlete_id === S.ath; }).length;
+    h += '<section class="card"><div class="row">' + avatar(a, 72) + '<div><div class="big" style="font-size:28px">' + esc(a.display_name) + '</div><div class="small muted">' + n + " prove registrate · obiettivo Rimini</div></div></div></section>";
+    h += '<div class="grid3">' + ORDER.map(function (c) { return '<button class="chip' + (c === S.ex ? " on" : "") + '" data-act="ex" data-id="' + c + '">' + SHORT[c] + "</button>"; }).join("") + "</div>";
+    var m = model(S.ath, S.ex), off = exInfo(S.ex);
+    if (m.empty) {
+      h += '<section class="card soft">' + (m.other ? "C'è " + (m.other === 1 ? "1 prova" : m.other + " prove") + " di " + esc(off.short) + " senza distanza o con attrezzo non ufficiale: restano nello storico, ma per grafico e previsione serve una prova sulla " + (off.unit === "rip." ? "quantità di ripetizioni" : "distanza in metri") + " con attrezzo ufficiale." : "Nessuna prova registrata per questo esercizio. Appena arrivano i primi tempi compare il grafico.") + "</section>";
+    } else {
+      h += '<section class="card"><div class="row between"><h2 style="margin:0">' + esc(off.name) + '</h2><span class="small muted">' + esc(off.spec) + "</span></div>" + chartSvg(m) +
+        '<div class="row wrap small muted" style="gap:12px"><span class="row" style="gap:6px"><svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="var(--fg)"/></svg>prova completa</span><span class="row" style="gap:6px"><svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="3.5" fill="none" stroke="var(--fg)" stroke-width="1.5"/></svg>parziale o carico ridotto (stima)</span><span class="row" style="gap:6px"><svg width="18" height="10" aria-hidden="true"><line x1="0" x2="18" y1="5" y2="5" stroke="var(--pred)" stroke-width="2" stroke-dasharray="4 3"/></svg>previsione</span><span>più in alto = più veloce</span></div></section>';
+      var ln = dl(m.last.performed_on); if (m.last.amount && Number(m.last.amount) !== off.amount) ln += " · " + Number(m.last.amount) + " " + off.unit; if (m.last.load_kg && off.load && Number(m.last.load_kg) < off.load) ln += " · " + Number(m.last.load_kg) + " kg";
+      h += '<div class="grid3"><div class="tile"><span class="eyebrow">Ultima</span><span class="num" style="font-size:22px">' + fmtP(m.last.seconds) + '</span><span class="small muted">' + esc(ln) + '</span></div><div class="tile"><span class="eyebrow">Record</span><span class="num" style="font-size:22px">' + fmtP(m.pb) + '</span><span class="small muted">' + (m.pb != null ? "prova completa" : "nessuna prova completa") + '</span></div><div class="tile"><span class="eyebrow">' + (m.trendOk ? "A Rimini" : "Stima oggi") + '</span><span class="num pred" style="font-size:22px">' + fmt(m.predRace) + '</span><span class="small muted">' + fmt(m.predRace - m.band) + " – " + fmt(m.predRace + m.band) + "</span></div></div>";
+      var ms;
+      if (!m.trendOk) ms = "La previsione verso Rimini si attiva con prove in almeno 3 giorni, distribuite su 2 settimane (ora: " + m.nDates + (m.nDates === 1 ? " giorno" : " giorni") + (m.nDates > 1 ? " in un arco di " + m.span + " giorni" : "") + "). Intanto vedi la stima attuale sulla distanza di gara.";
+      else if (m.b >= 0) ms = "Nessun miglioramento netto nelle ultime prove: la previsione resta sul livello attuale.";
+      else { var ref = m.pb != null ? m.pb : m.predAt(m.lastW), tg = Math.floor((ref - 1) / 15) * 15, wT = Math.exp((tg - m.a) / m.b) - 1; if (wT <= m.lastW) wT = m.lastW + 1; ms = wT <= RACE_W ? "Sotto " + fmt(tg) + " verso " + phraseWeek(wT) + ", se il ritmo di miglioramento resta questo." : "Sotto " + fmt(tg) + " probabilmente dopo Rimini: per arrivarci prima serve un cambio di passo."; }
+      h += '<section class="card"><div class="eyebrow">Prossimo traguardo</div><div>' + esc(ms) + "</div></section>";
+      if (off.load) {
+        var ls = m.loads.slice().sort(function (x, y) { return x.performed_on < y.performed_on ? -1 : 1; });
+        if (ls.length) {
+          var lastL = Number(ls[ls.length - 1].load_kg), pct = Math.min(100, Math.round(lastL / off.load * 100)), eta;
+          if (lastL >= off.load) eta = "Già a peso gara.";
+          else if (ls.length >= 2) { var nn = ls.length, a1 = 0, b1 = 0, c1 = 0, d1 = 0; ls.forEach(function (p) { var x = wk(p.performed_on), y = Number(p.load_kg); a1 += x; b1 += y; c1 += x * x; d1 += x * y; }); var den = nn * c1 - a1 * a1, sl = den ? (nn * d1 - a1 * b1) / den : 0, ic = (b1 - sl * a1) / nn; eta = sl > 0.05 ? ((off.load - ic) / sl <= RACE_W ? "Peso gara previsto verso " + phraseWeek(Math.max((off.load - ic) / sl, m.lastW)) + "." : "Con questo ritmo il peso gara arriva dopo Rimini.") : "Il carico è fermo: conviene aumentarlo gradualmente."; }
+          else eta = "Serve almeno un'altra prova per stimare quando si arriva al peso gara.";
+          h += '<section class="card"><div class="row between"><span class="eyebrow">Carico verso il peso gara</span><span class="small" style="font-weight:700">' + lastL + " kg su " + off.load + " (" + pct + '%)</span></div><div class="bar"><div style="width:' + pct + '%"></div></div><div class="small soft">' + eta + "</div></section>";
+        }
+      }
+      if (m.other) h += '<div class="small muted">' + m.other + (m.other === 1 ? " prova" : " prove") + " con un'altra configurazione (senza quantità o attrezzo non ufficiale) restano nello storico ma non entrano nel grafico.</div>";
+    }
+    h += '<h2>Tutti gli esercizi di ' + esc(a.display_name) + '</h2><section class="card"><div class="list">';
+    ORDER.forEach(function (c) { var mm = model(S.ath, c); h += '<button data-act="ex" data-id="' + c + '" style="display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:8px;background:none;border:0;border-bottom:1px solid var(--line);text-align:left;min-height:44px;cursor:pointer"><span style="font-weight:' + (c === S.ex ? 700 : 400) + '">' + SHORT[c] + '</span><span class="num" style="text-align:right">' + (mm.empty ? "–" : fmtP(mm.pb)) + '</span><span class="num pred" style="text-align:right">' + (mm.empty ? "–" : fmt(mm.predRace)) + "</span></button>"; });
+    return h + '</div><div class="small muted" style="text-align:right">record · previsione</div></section>';
+  }
+
+  function viewStaffetta() {
+    var M = allModels(), F = formations(M), act = S.data.athletes.filter(function (a) { return a.active; });
+    var h = '<div class="soft">Nella staffetta ognuna fa due corse da 1 km più una coppia di stazioni. Qui sotto le combinazioni più veloci con i tempi previsti a Rimini.</div>';
+    if (!F.length) { var have = 0; act.forEach(function (a) { ORDER.forEach(function (c) { if (!M[a.id][c].empty) have++; }); }); h += '<div class="notice">Per stimare la staffetta serve almeno una prova confrontabile di ogni stazione e della corsa per ciascuna ragazza. Al momento ne abbiamo ' + have + " su " + act.length * ORDER.length + ": la tabella qui sotto mostra cosa manca (–).</div>"; }
+    ["Formazione consigliata","Seconda opzione","Terza opzione"].forEach(function (t, i) {
+      var f = F[i]; if (!f) return;
+      h += '<section class="card" style="' + (i === 0 ? "border:2px solid var(--accent)" : "") + '"><div class="row between"><span class="eyebrow">' + t + '</span><span class="big" style="font-size:28px">' + fmt(f.total) + "</span></div>";
+      BLOCKS.forEach(function (b, j) { var a = athlete(f.p[j]); h += '<div class="row between small"><span class="soft">' + b.n + " · " + b.label + '</span><span class="row" style="gap:6px;font-weight:700">' + avatar(a, 24) + esc(a.display_name) + "</span></div>"; });
+      h += '<div class="small muted">' + (i === 0 ? "La più veloce tra " + F.length + " combinazioni." : "+" + Math.round(f.total - F[0].total) + " s rispetto alla consigliata") + "</div></section>";
+    });
+    var best = BLOCKS.map(function (b) { var v = Infinity; act.forEach(function (a) { var t = blockTime(M, a.id, b); if (t != null && t < v) v = t; }); return v; });
+    h += '<h2>Chi rende meglio dove</h2><div class="small muted">Tempo previsto di ogni blocco (2 corse + 2 stazioni).</div><section class="card"><div class="mx"><div></div>' + BLOCKS.map(function (b) { return '<div class="muted" style="font-size:10px">' + b.n + " · " + b.label.split(" + ")[0] + "</div>"; }).join("");
+    act.forEach(function (a) { h += '<div style="font-weight:700;text-align:left">' + esc(a.display_name) + "</div>"; BLOCKS.forEach(function (b, j) { var t = blockTime(M, a.id, b); h += '<div class="' + (t != null && Math.abs(t - best[j]) < 0.5 ? "best" : "") + '">' + (t == null ? "–" : fmt(t)) + "</div>"; }); });
+    return h + "</div></section>";
+  }
+
+  function pwBox() {
+    return '<section class="card"><div class="eyebrow">Password</div><div class="small soft">Per modificare i dati serve la password della squadra.</div><form data-form="pw" class="row"><label class="f" style="flex:1">Password<input class="i" id="pw-in" type="password" autocomplete="current-password"></label><button class="btn primary" type="submit" style="align-self:flex-end">Entra</button></form>' + (S.err ? '<div class="err">' + esc(S.err) + "</div>" : "") + "</section>";
+  }
+  function viewDati() {
+    var h = '<div class="seg">' + [["risultati","Risultati"],["atlete","Atlete"],["pesi","Pesi gara"],["importa","Importa"]].map(function (t) { return '<button class="' + (S.dataTab === t[0] ? "on" : "") + '" data-act="dtab" data-id="' + t[0] + '">' + t[1] + "</button>"; }).join("") + "</div>";
+    h += '<div class="notice">Qui si correggono i dati. Le righe arrivate dall\'Excel vengono riallineate al prossimo caricamento del file.</div>';
+    if (S.msg) h += '<div class="small" style="font-weight:700">' + esc(S.msg) + "</div>";
+    if (!store("hg_pw")) return h + pwBox();
+    if (S.err) h += '<div class="err">' + esc(S.err) + "</div>";
+    if (S.dataTab === "risultati") h += dataResults();
+    else if (S.dataTab === "atlete") h += dataAthletes();
+    else if (S.dataTab === "pesi") h += dataPesi();
+    else h += dataImport();
+    return h;
+  }
+  function dataResults() {
+    var h = "";
+    if (S.form) {
+      var f = S.form, off = exInfo(f.exercise_code);
+      h += '<form class="card" data-form="result"><h2 style="margin:0">' + (f.id ? "Modifica risultato" : "Nuovo risultato") + '</h2><div class="grid2">' +
+        '<label class="f">Atleta<select class="i" id="f-ath">' + S.data.athletes.map(function (a) { return '<option value="' + a.id + '"' + (a.id === f.athlete_id ? " selected" : "") + ">" + esc(a.display_name) + "</option>"; }).join("") + "</select></label>" +
+        '<label class="f">Esercizio<select class="i" id="f-ex">' + ORDER.map(function (c) { return '<option value="' + c + '"' + (c === f.exercise_code ? " selected" : "") + ">" + SHORT[c] + "</option>"; }).join("") + "</select></label>" +
+        '<label class="f">Data<input class="i" type="date" id="f-date" value="' + esc(f.performed_on) + '"></label>' +
+        '<label class="f">Tempo<input class="i" id="f-time" inputmode="decimal" placeholder="4:35" value="' + esc(f.time) + '"></label>' +
+        '<label class="f">Quantità (' + off.unit + ')<input class="i" id="f-amount" inputmode="decimal" value="' + esc(f.amount) + '"></label>' +
+        '<label class="f">Kg' + (off.load ? " (gara " + off.load + ")" : "") + '<input class="i" id="f-kg" inputmode="decimal" value="' + esc(f.load_kg) + '"></label>' +
+        '<label class="f">Ripetizioni<input class="i" id="f-reps" inputmode="numeric" value="' + esc(f.reps) + '"></label>' +
+        '<label class="f">Resistenza<input class="i" id="f-res" inputmode="numeric" value="' + esc(f.resistance) + '"></label>' +
+        '<label class="f">Velocità km/h<input class="i" id="f-spd" inputmode="decimal" value="' + esc(f.speed_kmh) + '"></label>' +
+        '<label class="f" style="justify-content:flex-end"><span class="row" style="min-height:44px;gap:8px;color:var(--fg)"><input type="checkbox" id="f-off" style="width:22px;height:22px"' + (f.official_equipment !== false ? " checked" : "") + '>Attrezzo ufficiale</span></label>' +
+        '</div><label class="f">Nota<input class="i" id="f-note" value="' + esc(f.note) + '"></label><div class="row"><button class="btn primary" type="submit" style="flex:1"' + (S.busy ? " disabled" : "") + '>Salva</button><button class="btn" type="button" data-act="form-close" style="flex:1">Annulla</button></div></form>';
+    } else h += '<button class="btn dashed" data-act="new">+ Aggiungi un risultato</button>';
+    h += '<div class="row wrap" style="gap:6px">' + [{ id: "all", display_name: "Tutte" }].concat(S.data.athletes).map(function (a) { return '<button class="chip' + (S.filter === a.id ? " on" : "") + '" style="padding:0 14px" data-act="filter" data-id="' + a.id + '">' + esc(a.display_name) + "</button>"; }).join("") + "</div>";
+    var rows = S.data.results.filter(function (r) { return S.filter === "all" || r.athlete_id === S.filter; });
+    h += '<section class="card"><div class="list">' + (rows.slice(0, S.showN).map(function (r) { return resultRow(r, true); }).join("") || '<div class="muted">Nessun risultato.</div>') + "</div></section>";
+    if (rows.length > S.showN) h += '<button class="btn" data-act="more">Mostra altri (' + (rows.length - S.showN) + ")</button>";
+    return h;
+  }
+  function dataAthletes() {
+    var h = '<div class="small muted">Il nome breve è quello che si scrive nel bot (es. "Ale wall ball 4:35"). Un\'atleta disattivata resta nello storico ma esce da squadra e staffetta.</div>';
+    S.data.athletes.forEach(function (a) {
+      h += '<form class="card" data-form="athlete" data-id="' + a.id + '"><div class="row">' + avatar(a, 56) + '<label class="btn" style="display:inline-flex;align-items:center">Cambia foto<input type="file" accept="image/*" data-photo="' + a.id + '" hidden></label></div><div class="grid2"><label class="f">Nome breve<input class="i" id="an-' + a.id + '" value="' + esc(a.display_name) + '"></label><label class="f">Nome completo<input class="i" id="af-' + a.id + '" value="' + esc(a.full_name) + '"></label></div><div class="row between"><span class="row" style="gap:8px"><input type="checkbox" id="aa-' + a.id + '" style="width:22px;height:22px"' + (a.active ? " checked" : "") + '><label for="aa-' + a.id + '">Attiva</label></span><button class="btn primary" type="submit">Salva</button></div></form>';
+    });
+    return h + '<form class="card" data-form="athlete-new"><div class="grid2"><label class="f">Nome breve<input class="i" id="new-ath"></label><button class="btn dashed" type="submit" style="align-self:flex-end">+ Aggiungi atleta</button></div></form>';
+  }
+  function dataPesi() {
+    var h = '<div class="small muted">Valori ufficiali della gara donne relay. Se il regolamento cambia si aggiornano qui e previsioni e stime si ricalcolano.</div>';
+    ORDER.forEach(function (c) { var e = exInfo(c); h += '<form class="card" data-form="ex" data-id="' + c + '"><div style="font-weight:700">' + esc(e.name) + '</div><div class="grid2"><label class="f">Quantità (' + e.unit + ')<input class="i" id="ea-' + c + '" inputmode="decimal" value="' + (e.amount == null ? "" : e.amount) + '"></label><label class="f">Peso gara kg<input class="i" id="el-' + c + '" inputmode="decimal" value="' + (e.load == null ? "" : e.load) + '"></label></div><div class="row between"><span class="small muted">' + esc(e.spec) + '</span><button class="btn primary" type="submit">Salva</button></div></form>'; });
+    return h;
+  }
+  function dataImport() {
+    var h = '<section class="card"><div class="eyebrow">Carica il Registro Excel</div><div class="small soft">Si leggono i fogli Cristina, Alessandra, Daniela e Arianna. Righe nuove aggiunte, modificate aggiornate, invariate ignorate. Tipo strumento ALTERNATIVO: salvate ma escluse dalle previsioni. I dati di Telegram non vengono toccati.</div><label class="btn primary" style="display:inline-flex;align-items:center;justify-content:center">' + (S.busy ? "Caricamento…" : "Scegli il file .xlsx") + '<input type="file" accept=".xlsx" id="xlsx" hidden></label>';
+    if (S.importRes) { var r = S.importRes; h += '<div class="grid3"><div class="tile"><span class="eyebrow">Aggiunte</span><span class="num" style="font-size:22px">' + r.aggiunte + '</span></div><div class="tile"><span class="eyebrow">Rimosse</span><span class="num" style="font-size:22px">' + r.rimosse + '</span></div><div class="tile"><span class="eyebrow">Invariate</span><span class="num" style="font-size:22px">' + r.invariate + "</span></div></div>" + (r.scartate && r.scartate.length ? '<div class="small err">Righe scartate: ' + r.scartate.map(function (s) { return esc(s.riga || ""); }).join(", ") + "</div>" : ""); }
+    h += "</section>";
+    if (S.runs) h += '<h2>Ultimi caricamenti</h2><section class="card"><div class="list">' + S.runs.map(function (r) { return '<div><div style="font-weight:700" class="small">' + esc(new Date(r.created_at).toLocaleString("it-IT")) + " · " + esc(r.file_name || "") + '</div><div class="small muted">+' + r.inserted + " aggiunte · −" + r.deleted + " rimosse · " + r.unchanged + " invariate</div></div>"; }).join("") + "</div></section>";
+    return h;
+  }
+
+  function viewBot() {
+    var names = S.data.athletes.filter(function (a) { return a.active; }).map(function (a) { return a.display_name; });
+    return '<div class="soft">I tempi si possono inserire dal gruppo Telegram: scrivendo libero, anche più righe insieme, oppure con /registra e i pulsanti.</div><section class="card" style="gap:8px">' +
+      '<div class="bubble me">Ale wall ball 4:35\nDany burpee 40m 2:10\nCri sled push 2:12 90kg</div><div class="bubble bot">Ale · Wall Balls 4:35 · −8s rispetto all\'ultima\nDany · Burpee 40 m 2:10 · stima su 80 m\nCri · Sled Push 2:12 · 90 kg</div>' +
+      '<div class="bubble me">/registra</div><div class="bubble bot">Per chi?  ' + esc(names.join(" · ")) + '\n→ Prova completa o parziale\n→ Esercizio → Quantità → Carico → Tempo</div>' +
+      '<div class="bubble me">/tempi Ari</div><div class="bubble bot">Ari · ultimi tempi e record per ogni esercizio</div></section>' +
+      '<section class="card"><div class="eyebrow">Comandi</div><div class="list small"><div><b>/entra CODICE NOME</b> · entrare nel team (senza nome come segnapunti)</div><div><b>/registra</b> · inserimento guidato con i pulsanti</div><div><b>/tempi nome</b> · ultimi tempi e record</div><div><b>/annulla</b> · toglie il tuo ultimo inserimento</div><div><b>/aiuto</b> · tutti i comandi</div></div><div class="small muted">Si possono scrivere più righe in un messaggio, con kg (80kg), metri o ripetizioni (500m, 50rep) e tempi come 4:35, 3 min, 275s.</div></section>' +
+      '<section class="card"><div class="eyebrow">File Excel settimanale</div><div class="small soft">Si carica da Dati → Importa, con la password della squadra.</div></section>';
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    document.getElementById("subtitle").textContent = TITLES[S.tab];
+    document.getElementById("tabs").innerHTML = TABS.map(function (t) { return '<a href="#' + t[0] + '" class="' + (S.tab === t[0] ? "on" : "") + '"' + (S.tab === t[0] ? ' aria-current="page"' : "") + ">" + t[1] + "</a>"; }).join("");
+    var v = document.getElementById("view");
+    if (S.loadErr) { v.innerHTML = '<section class="card"><div class="err">Non riesco a leggere i dati (' + esc(S.loadErr) + ').</div><button class="btn primary" data-act="reload">Riprova</button></section>'; return; }
+    if (!S.data) return;
+    var fn = { squadra: viewSquadra, atleta: viewAtleta, staffetta: viewStaffetta, dati: viewDati, bot: viewBot }[S.tab];
+    v.innerHTML = fn();
+  }
+  function fromHash() { var h = (location.hash || "").replace("#", ""); S.tab = TABS.some(function (t) { return t[0] === h; }) ? h : "squadra"; S.msg = ""; S.err = ""; if (S.tab === "dati" && S.dataTab === "importa") loadRuns(); render(); window.scrollTo(0, 0); }
+  window.addEventListener("hashchange", fromHash);
+
+  function guard(p) {
+    S.busy = true; S.err = ""; render();
+    return p.then(function (x) { S.busy = false; return x; }, function (e) { S.busy = false; if (e.pw) { store("hg_pw", null); S.err = "Password errata, riprova."; } else S.err = e.message || "Operazione non riuscita."; render(); throw e; });
+  }
+  function refresh(msg) { return load().then(function () { S.msg = msg || ""; render(); }); }
+  function loadRuns() { rpc("hg_import_runs").then(function (r) { S.runs = r; render(); }, function () {}); }
+  function num(id) { var v = (document.getElementById(id).value || "").trim().replace(",", "."); return v === "" ? null : Number(v); }
+
+  document.addEventListener("click", function (ev) {
+    var t = ev.target.closest("[data-act]"); if (!t) return;
+    var act = t.getAttribute("data-act"), id = t.getAttribute("data-id");
+    if (act === "reload") { refresh(); return; }
+    if (act === "open-ath") { S.ath = id; return; }
+    if (act === "ath") { S.ath = id; render(); return; }
+    if (act === "ex") { S.ex = id; render(); return; }
+    if (act === "dtab") { S.dataTab = id; S.msg = ""; S.err = ""; if (id === "importa") loadRuns(); render(); return; }
+    if (act === "filter") { S.filter = id; S.showN = 15; render(); return; }
+    if (act === "more") { S.showN += 15; render(); return; }
+    if (act === "new") { var off = exInfo("row"); S.form = { id: null, athlete_id: S.data.athletes[0] && S.data.athletes[0].id, exercise_code: "row", performed_on: iso(new Date()), time: "", amount: off.amount == null ? "" : off.amount, load_kg: "", reps: "", resistance: "", speed_kmh: "", note: "", official_equipment: true }; render(); return; }
+    if (act === "edit") { var r = S.data.results.filter(function (x) { return x.id === id; })[0]; S.form = { id: r.id, athlete_id: r.athlete_id, exercise_code: ORDER.indexOf(r.exercise_code) >= 0 ? r.exercise_code : "row", performed_on: r.performed_on, time: fmtP(r.seconds), amount: r.amount == null ? "" : Number(r.amount), load_kg: r.load_kg == null ? "" : Number(r.load_kg), reps: r.reps == null ? "" : Number(r.reps), resistance: r.resistance == null ? "" : Number(r.resistance), speed_kmh: r.speed_kmh == null ? "" : Number(r.speed_kmh), note: r.note || "", official_equipment: r.official_equipment !== false }; S.confirmDel = null; render(); window.scrollTo(0, 0); return; }
+    if (act === "form-close") { S.form = null; render(); return; }
+    if (act === "del") { S.confirmDel = id; render(); return; }
+    if (act === "del-no") { S.confirmDel = null; render(); return; }
+    if (act === "del-yes") { guard(rpc("hg_result_delete", { p_pw: store("hg_pw"), p_id: id })).then(function () { S.confirmDel = null; return refresh("Risultato eliminato."); }).catch(function () {}); return; }
+  });
+  document.addEventListener("change", function (ev) {
+    var t = ev.target;
+    if (t.id === "f-ex" && S.form) { S.form.exercise_code = t.value; var off = exInfo(t.value); S.form.amount = off.amount == null ? "" : off.amount; S.form.load_kg = off.load == null ? "" : off.load; render(); return; }
+    if (t.hasAttribute && t.hasAttribute("data-photo") && t.files[0]) { photo(t.getAttribute("data-photo"), t.files[0]); return; }
+    if (t.id === "xlsx" && t.files[0]) { importFile(t.files[0]); }
+  });
+  document.addEventListener("submit", function (ev) {
+    var f = ev.target, k = f.getAttribute("data-form"); if (!k) return; ev.preventDefault();
+    if (k === "pw") {
+      var pw = document.getElementById("pw-in").value;
+      rpc("hg_check", { p_pw: pw }).then(function (ok) { if (ok) { store("hg_pw", pw); S.err = ""; if (S.dataTab === "importa") loadRuns(); } else S.err = "Password errata, riprova."; render(); }, function (e) { S.err = e.message; render(); });
+      return;
+    }
+    if (k === "result") {
+      var secs = parseTime(document.getElementById("f-time").value);
+      if (!secs) { S.err = "Tempo non valido: scrivilo come 4:35, 4:35,20 o 1:02:30."; render(); return; }
+      var date = document.getElementById("f-date").value; if (!date) { S.err = "Manca la data."; render(); return; }
+      var ex = document.getElementById("f-ex").value, amt = num("f-amount");
+      var p = { id: S.form.id, athlete_id: document.getElementById("f-ath").value, exercise_code: ex, performed_on: date, seconds: Math.round(secs * 100) / 100, amount: amt, distance_m: exInfo(ex).unit === "m" ? amt : null, load_kg: num("f-kg"), reps: exInfo(ex).unit === "rip." ? amt : num("f-reps"), resistance: num("f-res"), speed_kmh: num("f-spd"), note: document.getElementById("f-note").value.trim(), official_equipment: document.getElementById("f-off").checked };
+      guard(rpc("hg_result_save", { p_pw: store("hg_pw"), p: p })).then(function () { S.form = null; return refresh("Risultato salvato."); }).catch(function () {});
+      return;
+    }
+    if (k === "athlete") { var aid = f.getAttribute("data-id"); guard(rpc("hg_athlete_save", { p_pw: store("hg_pw"), p: { id: aid, display_name: document.getElementById("an-" + aid).value, full_name: document.getElementById("af-" + aid).value, active: document.getElementById("aa-" + aid).checked } })).then(function () { return refresh("Atleta salvata."); }).catch(function () {}); return; }
+    if (k === "athlete-new") { var nm = document.getElementById("new-ath").value.trim(); if (!nm) return; guard(rpc("hg_athlete_save", { p_pw: store("hg_pw"), p: { display_name: nm, active: true } })).then(function () { return refresh("Atleta aggiunta."); }).catch(function () {}); return; }
+    if (k === "ex") { var c = f.getAttribute("data-id"); guard(rpc("hg_exercise_save", { p_pw: store("hg_pw"), p_code: c, p_amount: num("ea-" + c), p_load: num("el-" + c) })).then(function () { return refresh("Valori di gara salvati."); }).catch(function () {}); }
+  });
+
+  function photo(aid, file) {
+    var fr = new FileReader();
+    fr.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var s = Math.min(img.width, img.height), cv = document.createElement("canvas"); cv.width = cv.height = 220;
+        cv.getContext("2d").drawImage(img, (img.width - s) / 2, Math.max(0, (img.height - s) / 2 - s * 0.08), s, s, 0, 0, 220, 220);
+        var url = cv.toDataURL("image/jpeg", 0.82);
+        guard(rpc("hg_athlete_save", { p_pw: store("hg_pw"), p: { id: aid, photo_url: url } })).then(function () { return refresh("Foto aggiornata."); }).catch(function () {});
+      };
+      img.onerror = function () { S.err = "Non riesco a leggere questa immagine."; render(); };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+
+  /* lettura Excel: stesse regole dell'import del database */
+  var COLS = [["data","date"],["stazione","station"],["distanza","distance_m"],["chili","load_kg"],["ripetizioni","reps"],["pendenza","incline_pct"],["resistenza","resistance"],["velocit","speed_kmh"],["tempo","seconds"],["rpe","rpe"],["note","note"],["tipo strumento","tool_type"]];
+  function xSecs(v) { if (v == null || v === "") return null; if (typeof v === "number") return v < 1 ? Math.round(v * 86400 * 100) / 100 : Math.round(v * 100) / 100; var p = parseTime(v); return p == null ? null : Math.round(p * 100) / 100; }
+  function xNum(v) { if (v == null || v === "") return null; var n = typeof v === "number" ? v : Number(String(v).trim().replace(",", ".")); return isFinite(n) ? n : null; }
+  function xStr(v) { if (v == null) return null; var s = String(v).trim(); return s || null; }
+  function importFile(file) {
+    if (typeof XLSX === "undefined") { S.err = "La libreria per leggere l'Excel non si è caricata: ricarica la pagina."; render(); return; }
+    var fr = new FileReader();
+    fr.onload = function () {
+      var rows = [];
+      try {
+        var wb = XLSX.read(new Uint8Array(fr.result), { type: "array", cellDates: false });
+        ["Cristina","Alessandra","Daniela","Arianna"].forEach(function (name) {
+          var ws = wb.Sheets[name]; if (!ws) return;
+          var grid = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: true });
+          var start = XLSX.utils.decode_range(ws["!ref"] || "A1").s.r, hdr = -1;
+          for (var i = 0; i < Math.min(10, grid.length); i++) { var cells = (grid[i] || []).map(function (c) { return String(c == null ? "" : c).trim().toLowerCase(); }); if (cells.indexOf("data") >= 0 && cells.indexOf("stazione") >= 0) { hdr = i; break; } }
+          if (hdr < 0) return;
+          var head = grid[hdr].map(function (c) { return String(c == null ? "" : c).trim().toLowerCase(); }), idx = {};
+          COLS.forEach(function (c) { var j = head.findIndex(function (x) { return x.indexOf(c[0]) === 0; }); if (j >= 0) idx[c[1]] = j; });
+          var g = function (row, k) { return idx[k] === undefined ? null : row[idx[k]]; };
+          for (var r = hdr + 1; r < grid.length; r++) {
+            var row = grid[r] || [], dv = g(row, "date"), st = xStr(g(row, "station"));
+            if (typeof dv !== "number" || !st) continue;
+            var d = XLSX.SSF.parse_date_code(dv); if (!d || !d.y) continue;
+            rows.push({ sheet_row: name + "!" + (start + r + 1), athlete: name, date: d.y + "-" + pad2(d.m) + "-" + pad2(d.d), station: st, seconds: xSecs(g(row, "seconds")), distance_m: xNum(g(row, "distance_m")), load_kg: xNum(g(row, "load_kg")), reps: xNum(g(row, "reps")), incline_pct: xNum(g(row, "incline_pct")), resistance: xNum(g(row, "resistance")), speed_kmh: xNum(g(row, "speed_kmh")), rpe: xNum(g(row, "rpe")), note: xStr(g(row, "note")), tool_type: xStr(g(row, "tool_type")) });
+          }
+        });
+      } catch (e) { S.err = "Il file non sembra un Excel valido."; render(); return; }
+      if (!rows.length) { S.err = "Nessuna riga valida trovata nei fogli delle atlete."; render(); return; }
+      guard(rpc("hg_import", { p_pw: store("hg_pw"), p_rows: rows, p_file: file.name })).then(function (res) { S.importRes = res; loadRuns(); return refresh("File caricato."); }).catch(function () {});
+    };
+    fr.readAsArrayBuffer(file);
+  }
+
+  document.getElementById("reload").addEventListener("click", function () { refresh("Dati aggiornati."); });
+  S.tab = "squadra"; fromHash();
+  load().then(render);
+})();
+</script>
+
+</body>
+</html>
