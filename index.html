@@ -182,11 +182,11 @@ svg text { font-family: var(--body) }
     if (!pts.length) return { empty: true, other: other };
     var refW = Math.max.apply(null, pts.map(function (p) { return wk(p.performed_on); }));
     var rows = pts.map(function (p) {
-      var f = Math.min(1, Number(p.amount) / off.amount);
+      var f = Number(p.amount) / off.amount;
       var lr = off.load ? Math.min(1, (Number(p.load_kg) || off.load) / off.load) : 1;
       var est = p.seconds / Math.pow(f, 1.06) / (0.7 + 0.3 * lr);
       var w0 = Math.max(0, wk(p.performed_on));
-      return { wk: w0, x: Math.log(1 + w0), est: est, wt: Math.max(0.02, f * lr * lr * Math.exp(-((refW - w0) * 7) / 120)), partial: f < 0.999 || lr < 0.95, p: p, f: f, lr: lr };
+      return { wk: w0, x: Math.log(1 + w0), est: est, wt: Math.max(0.02, Math.min(1, f) * lr * lr * Math.exp(-((refW - w0) * 7) / 120)), partial: Math.abs(f - 1) > 0.001 || lr < 0.95, p: p, f: f, lr: lr };
     });
     var sw = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
     rows.forEach(function (r) { sw += r.wt; sx += r.wt * r.x; sy += r.wt * r.est; sxx += r.wt * r.x * r.x; sxy += r.wt * r.x * r.est; });
@@ -201,7 +201,7 @@ svg text { font-family: var(--body) }
     var a = my - b * mx, res = 0;
     rows.forEach(function (r) { var e = r.est - (a + b * r.x); res += r.wt * e * e; });
     var s = Math.max(Math.sqrt(res / sw), 0.02 * a);
-    var fulls = rows.filter(function (r) { return r.f >= 0.999 && r.lr >= 0.95; });
+    var fulls = rows.filter(function (r) { return Math.abs(r.f - 1) <= 0.001 && r.lr >= 0.95; });
     var pb = fulls.length ? Math.min.apply(null, fulls.map(function (r) { return r.p.seconds; })) : null;
     // la previsione non può essere più lenta del record su prova completa
     if (pb != null && a + b * Math.log(1 + RACE_W) > pb) a = pb - b * Math.log(1 + RACE_W);
@@ -263,7 +263,7 @@ svg text { font-family: var(--body) }
     var h = '<section class="card"><div class="eyebrow">Rimini Wellness · 27–30 maggio 2027</div><div class="row" style="align-items:baseline"><span class="big" style="font-size:60px;color:var(--accent)">' + days + '</span><span class="soft">giorni alla gara</span></div><div class="small muted">' + Math.floor(days / 7) + ' settimane di allenamento</div><div class="row wrap" style="gap:12px;margin-top:6px">';
     act.forEach(function (a) { h += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">' + avatar(a, 56) + '<span class="small" style="font-weight:700">' + esc(a.display_name) + "</span></div>"; });
     h += "</div></section>";
-    h += '<section class="card"><div class="eyebrow">Tempo staffetta previsto a Rimini</div><div class="big" style="font-size:42px">' + (F.length ? fmt(F[0].total) : "–") + '</div><div class="small soft">' + (F.length ? "Con la formazione migliore secondo i dati di oggi, transizioni escluse." : "Non ancora calcolabile: mancano prove su alcune stazioni.") + '</div><a class="btn" href="#staffetta" style="align-self:flex-start;display:inline-flex;align-items:center;text-decoration:none">Vedi la staffetta</a></section>';
+    h += '<section class="card"><div class="eyebrow">Tempo staffetta previsto a Rimini</div><div class="big" style="font-size:42px">' + (F.length ? fmt(F[0].total) : "–") + '</div><div class="small soft">' + (F.length ? "Con la formazione migliore secondo i dati di oggi, transizioni escluse." : "Non ancora calcolabile: mancano prove su alcune stazioni.") + '</div><a class="btn" href="#staffetta" style="align-self:flex-start;display:inline-flex;align-items:center;text-decoration:none;color:var(--fg)">Vedi la staffetta</a></section>';
     h += '<h2>Le ragazze</h2><div class="grid2">';
     act.forEach(function (a) {
       var mine = S.data.results.filter(function (r) { return r.athlete_id === a.id; });
@@ -272,7 +272,7 @@ svg text { font-family: var(--body) }
       h += '<a class="tile" href="#atleta" data-act="open-ath" data-id="' + a.id + '" style="text-decoration:none;color:inherit"><div class="row">' + avatar(a, 44) + '<span class="num" style="font-size:20px;font-weight:700">' + esc(a.display_name) + '</span></div><div class="small muted">' + mine.length + ' prove registrate</div><div class="small soft">' + (best ? "Più migliorata: " + esc(best.n) + " −" + Math.round(best.g * 100) + "%" : lastD ? "Ultimo allenamento: " + dl(lastD) : "Nessun allenamento") + "</div></a>";
     });
     h += '</div><h2>Ultimi inserimenti</h2><section class="card"><div class="list">';
-    var rec = S.data.results.slice(0, 5);
+    var rec = S.data.results.slice().sort(function (x, y) { return x.created_at < y.created_at ? 1 : x.created_at > y.created_at ? -1 : 0; }).slice(0, 5);
     h += rec.length ? rec.map(function (r) { return resultRow(r, false); }).join("") : '<div class="muted">Ancora nessun risultato.</div>';
     return h + "</div></section>";
   }
@@ -368,7 +368,7 @@ svg text { font-family: var(--body) }
   }
   function viewDati() {
     var h = '<div class="seg">' + [["risultati","Risultati"],["atlete","Atlete"],["pesi","Pesi gara"],["importa","Importa"]].map(function (t) { return '<button class="' + (S.dataTab === t[0] ? "on" : "") + '" data-act="dtab" data-id="' + t[0] + '">' + t[1] + "</button>"; }).join("") + "</div>";
-    h += '<div class="notice">Qui si correggono i dati. Le righe arrivate dall\'Excel vengono riallineate al prossimo caricamento del file.</div>';
+    h += '<div class="notice">Qui si correggono i dati. Una riga arrivata dall\'Excel, se poi cambia nel file, viene sostituita dalla versione del file al caricamento successivo.</div>';
     if (S.msg) h += '<div class="small" style="font-weight:700">' + esc(S.msg) + "</div>";
     if (!store("hg_pw")) return h + pwBox();
     if (S.err) h += '<div class="err">' + esc(S.err) + "</div>";
@@ -384,7 +384,7 @@ svg text { font-family: var(--body) }
       var f = S.form, off = exInfo(f.exercise_code);
       h += '<form class="card" data-form="result"><h2 style="margin:0">' + (f.id ? "Modifica risultato" : "Nuovo risultato") + '</h2><div class="grid2">' +
         '<label class="f">Atleta<select class="i" id="f-ath">' + S.data.athletes.map(function (a) { return '<option value="' + a.id + '"' + (a.id === f.athlete_id ? " selected" : "") + ">" + esc(a.display_name) + "</option>"; }).join("") + "</select></label>" +
-        '<label class="f">Esercizio<select class="i" id="f-ex">' + ORDER.map(function (c) { return '<option value="' + c + '"' + (c === f.exercise_code ? " selected" : "") + ">" + SHORT[c] + "</option>"; }).join("") + "</select></label>" +
+        '<label class="f">Esercizio<select class="i" id="f-ex">' + ORDER.concat(ORDER.indexOf(f.exercise_code) < 0 ? [f.exercise_code] : []).map(function (c) { return '<option value="' + c + '"' + (c === f.exercise_code ? " selected" : "") + ">" + esc(SHORT[c] || c) + "</option>"; }).join("") + "</select></label>" +
         '<label class="f">Data<input class="i" type="date" id="f-date" value="' + esc(f.performed_on) + '"></label>' +
         '<label class="f">Tempo<input class="i" id="f-time" inputmode="decimal" placeholder="4:35" value="' + esc(f.time) + '"></label>' +
         '<label class="f">Quantità (' + off.unit + ')<input class="i" id="f-amount" inputmode="decimal" value="' + esc(f.amount) + '"></label>' +
@@ -450,6 +450,13 @@ svg text { font-family: var(--body) }
   }
   function refresh(msg) { return load().then(function () { S.msg = msg || ""; render(); }); }
   function loadRuns() { rpc("hg_import_runs").then(function (r) { S.runs = r; render(); }, function () {}); }
+  function syncForm() {
+    var g = function (id) { var el = document.getElementById(id); return el ? el.value : ""; };
+    if (!S.form) return;
+    S.form.athlete_id = g("f-ath") || S.form.athlete_id; S.form.performed_on = g("f-date"); S.form.time = g("f-time");
+    S.form.reps = g("f-reps"); S.form.resistance = g("f-res"); S.form.speed_kmh = g("f-spd"); S.form.note = g("f-note");
+    var off = document.getElementById("f-off"); if (off) S.form.official_equipment = off.checked;
+  }
   function num(id) { var v = (document.getElementById(id).value || "").trim().replace(",", "."); return v === "" ? null : Number(v); }
 
   document.addEventListener("click", function (ev) {
@@ -464,7 +471,7 @@ svg text { font-family: var(--body) }
     if (act === "filter") { S.filter = id; S.showN = 15; render(); return; }
     if (act === "more") { S.showN += 15; render(); return; }
     if (act === "new") { var off = exInfo("row"); S.form = { id: null, athlete_id: S.data.athletes[0] && S.data.athletes[0].id, exercise_code: "row", performed_on: iso(new Date()), time: "", amount: off.amount == null ? "" : off.amount, load_kg: "", reps: "", resistance: "", speed_kmh: "", note: "", official_equipment: true }; render(); return; }
-    if (act === "edit") { var r = S.data.results.filter(function (x) { return x.id === id; })[0]; S.form = { id: r.id, athlete_id: r.athlete_id, exercise_code: ORDER.indexOf(r.exercise_code) >= 0 ? r.exercise_code : "row", performed_on: r.performed_on, time: fmtP(r.seconds), amount: r.amount == null ? "" : Number(r.amount), load_kg: r.load_kg == null ? "" : Number(r.load_kg), reps: r.reps == null ? "" : Number(r.reps), resistance: r.resistance == null ? "" : Number(r.resistance), speed_kmh: r.speed_kmh == null ? "" : Number(r.speed_kmh), note: r.note || "", official_equipment: r.official_equipment !== false }; S.confirmDel = null; render(); window.scrollTo(0, 0); return; }
+    if (act === "edit") { var r = S.data.results.filter(function (x) { return x.id === id; })[0]; S.form = { id: r.id, athlete_id: r.athlete_id, exercise_code: r.exercise_code, performed_on: r.performed_on, time: fmtP(r.seconds), amount: r.amount == null ? "" : Number(r.amount), load_kg: r.load_kg == null ? "" : Number(r.load_kg), reps: r.reps == null ? "" : Number(r.reps), resistance: r.resistance == null ? "" : Number(r.resistance), speed_kmh: r.speed_kmh == null ? "" : Number(r.speed_kmh), note: r.note || "", official_equipment: r.official_equipment !== false }; S.confirmDel = null; render(); window.scrollTo(0, 0); return; }
     if (act === "form-close") { S.form = null; render(); return; }
     if (act === "del") { S.confirmDel = id; render(); return; }
     if (act === "del-no") { S.confirmDel = null; render(); return; }
@@ -472,7 +479,7 @@ svg text { font-family: var(--body) }
   });
   document.addEventListener("change", function (ev) {
     var t = ev.target;
-    if (t.id === "f-ex" && S.form) { S.form.exercise_code = t.value; var off = exInfo(t.value); S.form.amount = off.amount == null ? "" : off.amount; S.form.load_kg = off.load == null ? "" : off.load; render(); return; }
+    if (t.id === "f-ex" && S.form) { syncForm(); S.form.exercise_code = t.value; var off = exInfo(t.value); S.form.amount = off.amount == null ? "" : off.amount; S.form.load_kg = off.load == null ? "" : off.load; render(); return; }
     if (t.hasAttribute && t.hasAttribute("data-photo") && t.files[0]) { photo(t.getAttribute("data-photo"), t.files[0]); return; }
     if (t.id === "xlsx" && t.files[0]) { importFile(t.files[0]); }
   });
@@ -548,7 +555,7 @@ svg text { font-family: var(--body) }
     fr.readAsArrayBuffer(file);
   }
 
-  document.getElementById("reload").addEventListener("click", function () { refresh("Dati aggiornati."); });
+  document.getElementById("reload").addEventListener("click", function () { location.replace(location.pathname + "?v=" + Date.now() + location.hash); });
   S.tab = "squadra"; fromHash();
   load().then(render);
 })();
