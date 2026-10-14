@@ -201,12 +201,14 @@ svg text { font-family: var(--body) }
     var a = my - b * mx, res = 0;
     rows.forEach(function (r) { var e = r.est - (a + b * r.x); res += r.wt * e * e; });
     var s = Math.max(Math.sqrt(res / sw), 0.02 * a);
+    var fulls = rows.filter(function (r) { return r.f >= 0.999 && r.lr >= 0.95; });
+    var pb = fulls.length ? Math.min.apply(null, fulls.map(function (r) { return r.p.seconds; })) : null;
+    // la previsione non può essere più lenta del record su prova completa
+    if (pb != null && a + b * Math.log(1 + RACE_W) > pb) a = pb - b * Math.log(1 + RACE_W);
     var lastW = Math.max.apply(null, wks);
     var predAt = function (w) { return a + b * Math.log(1 + w); };
     var predRace = predAt(RACE_W);
     var band = s + 0.04 * predRace + (rows.length < 4 ? 0.04 * predRace : 0);
-    var fulls = rows.filter(function (r) { return r.f >= 0.999 && r.lr >= 0.95; });
-    var pb = fulls.length ? Math.min.apply(null, fulls.map(function (r) { return r.p.seconds; })) : null;
     var last = pts.slice().sort(function (x, y) { return x.performed_on < y.performed_on ? 1 : x.performed_on > y.performed_on ? -1 : (x.created_at < y.created_at ? 1 : -1); })[0];
     var first = rows.slice().sort(function (x, y) { return x.wk - y.wk; })[0];
     return { a: a, b: b, s: s, rows: rows, lastW: lastW, predAt: predAt, predRace: predRace, band: band, pb: pb, last: last, off: off, trendOk: trendOk, nDates: nDates, span: Math.round(span), other: other,
@@ -332,8 +334,8 @@ svg text { font-family: var(--body) }
       if (m.other) h += '<div class="small muted">' + m.other + (m.other === 1 ? " prova" : " prove") + " con un'altra configurazione (senza quantità o attrezzo non ufficiale) restano nello storico ma non entrano nel grafico.</div>";
     }
     h += '<h2>Tutti gli esercizi di ' + esc(a.display_name) + '</h2><section class="card"><div class="list">';
-    ORDER.forEach(function (c) { var mm = model(S.ath, c); h += '<button data-act="ex" data-id="' + c + '" style="display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:8px;background:none;border:0;border-bottom:1px solid var(--line);text-align:left;min-height:44px;cursor:pointer"><span style="font-weight:' + (c === S.ex ? 700 : 400) + '">' + SHORT[c] + '</span><span class="num" style="text-align:right">' + (mm.empty ? "–" : fmtP(mm.pb)) + '</span><span class="num pred" style="text-align:right">' + (mm.empty ? "–" : fmt(mm.predRace)) + "</span></button>"; });
-    return h + '</div><div class="small muted" style="text-align:right">record · previsione</div></section>';
+    ORDER.forEach(function (c) { var mm = model(S.ath, c); h += '<button data-act="ex" data-id="' + c + '" style="display:grid;grid-template-columns:minmax(0,1fr) 76px 64px;gap:8px;align-items:center;background:none;border:0;border-bottom:1px solid var(--line);text-align:left;min-height:44px;cursor:pointer"><span style="font-weight:' + (c === S.ex ? 700 : 400) + '">' + SHORT[c] + '</span><span class="num" style="text-align:right">' + (mm.empty ? "–" : fmtP(mm.last.seconds) + (mm.last.amount != null && mm.off.amount && Number(mm.last.amount) !== mm.off.amount ? '<span class="muted" style="display:block;font-size:10px">su ' + Number(mm.last.amount) + " " + mm.off.unit + "</span>" : "")) + '</span><span class="num pred" style="text-align:right">' + (mm.empty ? "–" : fmt(mm.predRace)) + "</span></button>"; });
+    return h + '</div><div class="small muted" style="text-align:right">ultima prova · previsione Rimini</div></section>';
   }
 
   function viewStaffetta() {
