@@ -67,7 +67,9 @@ label.f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; colo
 input.i, select.i { height: 44px; border-radius: 10px; border: 1px solid var(--line2); background: var(--bg); padding: 0 10px; font-size: 15px; width: 100%; min-width: 0 }
 .bar { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden } .bar > div { height: 100%; background: var(--accent); border-radius: 5px }
 .mx { display: grid; grid-template-columns: 56px repeat(4, minmax(0, 1fr)); gap: 4px; font-size: 12px }
-.mx > div { padding: 8px 2px; text-align: center; border-radius: 8px; font-variant-numeric: tabular-nums }
+.mx > div, .mx > button { padding: 8px 2px; text-align: center; border-radius: 8px; font-variant-numeric: tabular-nums }
+.mx > button { font: inherit; color: inherit; background: transparent; border: 1px solid transparent; cursor: pointer; min-height: 36px }
+.mx > button.sel { outline: 2px solid var(--accent); outline-offset: 1px }
 .mx .best { background: var(--accent); color: var(--on-accent); font-weight: 700 }
 .bubble { max-width: 86%; padding: 10px 12px; border-radius: 18px; font-size: 14px; white-space: pre-line }
 .bubble.me { align-self: flex-end; background: var(--accent); color: var(--on-accent); border-bottom-right-radius: 4px }
@@ -345,9 +347,18 @@ svg text { font-family: var(--body) }
       h += '<div class="small muted">' + (i === 0 ? "La più veloce tra " + F.length + " combinazioni." : "+" + Math.round(f.total - F[0].total) + " s rispetto alla consigliata") + "</div></section>";
     });
     var best = BLOCKS.map(function (b) { var v = Infinity; act.forEach(function (a) { var t = blockTime(M, a.id, b); if (t != null && t < v) v = t; }); return v; });
-    h += '<h2>Chi rende meglio dove</h2><div class="small muted">Tempo previsto di ogni blocco (2 corse + 2 stazioni).</div><section class="card"><div class="mx"><div></div>' + BLOCKS.map(function (b) { return '<div class="muted" style="font-size:10px">' + b.n + " · " + b.label.split(" + ")[0] + "</div>"; }).join("");
-    act.forEach(function (a) { h += '<div style="font-weight:700;text-align:left">' + esc(a.display_name) + "</div>"; BLOCKS.forEach(function (b, j) { var t = blockTime(M, a.id, b); h += '<div class="' + (t != null && Math.abs(t - best[j]) < 0.5 ? "best" : "") + '">' + (t == null ? "–" : fmt(t)) + "</div>"; }); });
-    return h + "</div></section>";
+    h += '<h2>Chi rende meglio dove</h2><div class="small soft">Ogni numero è il tempo totale previsto a Rimini per tutta la frazione di quel blocco: 2 corse da 1 km più le sue 2 stazioni, non la singola stazione. Tocca un tempo per vedere da cosa è composto.</div><section class="card"><div class="mx"><div></div>' + BLOCKS.map(function (b) { return '<div class="muted" style="font-size:10px;line-height:1.25">Blocco ' + b.n + "<br>" + SHORT[b.ex[0]] + "<br>+ " + SHORT[b.ex[1]] + "</div>"; }).join("");
+    act.forEach(function (a) { h += '<div style="font-weight:700;text-align:left">' + esc(a.display_name) + "</div>"; BLOCKS.forEach(function (b, j) { var t = blockTime(M, a.id, b), key = a.id + "|" + b.n, cls = (t != null && Math.abs(t - best[j]) < 0.5 ? "best" : "") + (S.cell === key ? " sel" : ""); h += t == null ? "<div>–</div>" : '<button class="' + cls + '" data-act="cell" data-id="' + key + '">' + fmt(t) + "</button>"; }); });
+    h += "</div>";
+    if (S.cell) {
+      var parts = S.cell.split("|"), ca = athlete(parts[0]), cb = BLOCKS.filter(function (b) { return String(b.n) === parts[1]; })[0];
+      var ct = ca && cb ? blockTime(M, ca.id, cb) : null;
+      if (ct != null) {
+        var mr = M[ca.id].run.predRace, m0 = M[ca.id][cb.ex[0]].predRace, m1 = M[ca.id][cb.ex[1]].predRace;
+        h += '<div class="small" style="border-top:1px solid var(--line);padding-top:10px"><b>' + esc(ca.display_name) + " · Blocco " + cb.n + '</b><div class="soft">Corsa 1 km ' + fmt(mr) + " + " + SHORT[cb.ex[0]] + " " + fmt(m0) + " + corsa 1 km " + fmt(mr) + " + " + SHORT[cb.ex[1]] + " " + fmt(m1) + " = <b>" + fmt(ct) + "</b></div></div>";
+      }
+    }
+    return h + "</section>";
   }
 
   function pwBox() {
@@ -446,6 +457,7 @@ svg text { font-family: var(--body) }
     if (act === "open-ath") { S.ath = id; return; }
     if (act === "ath") { S.ath = id; render(); return; }
     if (act === "ex") { S.ex = id; render(); return; }
+    if (act === "cell") { S.cell = S.cell === id ? null : id; render(); return; }
     if (act === "dtab") { S.dataTab = id; S.msg = ""; S.err = ""; if (id === "importa") loadRuns(); render(); return; }
     if (act === "filter") { S.filter = id; S.showN = 15; render(); return; }
     if (act === "more") { S.showN += 15; render(); return; }
