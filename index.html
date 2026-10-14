@@ -410,11 +410,11 @@ svg text { font-family: var(--body) }
 
   function viewBot() {
     var names = S.data.athletes.filter(function (a) { return a.active; }).map(function (a) { return a.display_name; });
-    return '<div class="soft">I tempi si possono inserire dal gruppo Telegram: scrivendo libero, anche più righe insieme, oppure con /registra e i pulsanti.</div><section class="card" style="gap:8px">' +
+    return '<div class="soft">I tempi si possono inserire dal gruppo Telegram: scrivendo libero, anche più righe insieme, oppure con /registra e i pulsanti.</div><section class="card" style="gap:8px"><div class="eyebrow">Esempi</div><div class="small muted">Messaggi di prova per mostrare come si scrive: i tempi e i nomi qui sotto sono inventati, non sono risultati veri.</div>' +
       '<div class="bubble me">Ale wall ball 4:35\nDany burpee 40m 2:10\nCri sled push 2:12 90kg</div><div class="bubble bot">Ale · Wall Balls 4:35 · −8s rispetto all\'ultima\nDany · Burpee 40 m 2:10 · stima su 80 m\nCri · Sled Push 2:12 · 90 kg</div>' +
       '<div class="bubble me">/registra</div><div class="bubble bot">Per chi?  ' + esc(names.join(" · ")) + '\n→ Prova completa o parziale\n→ Esercizio → Quantità → Carico → Tempo</div>' +
       '<div class="bubble me">/tempi Ari</div><div class="bubble bot">Ari · ultimi tempi e record per ogni esercizio</div></section>' +
-      '<section class="card"><div class="eyebrow">Comandi</div><div class="list small"><div><b>/entra CODICE NOME</b> · entrare nel team (senza nome come segnapunti)</div><div><b>/registra</b> · inserimento guidato con i pulsanti</div><div><b>/tempi nome</b> · ultimi tempi e record</div><div><b>/annulla</b> · toglie il tuo ultimo inserimento</div><div><b>/aiuto</b> · tutti i comandi</div></div><div class="small muted">Si possono scrivere più righe in un messaggio, con kg (80kg), metri o ripetizioni (500m, 50rep) e tempi come 4:35, 3 min, 275s.</div></section>' +
+      '<section class="card"><div class="eyebrow">Comandi</div><div class="list small"><div><b>/entra CODICE NOME</b> · solo la prima volta, per entrare nel team (es. /entra codice Ari)</div><div><b>/registra</b> · inserimento guidato con i pulsanti</div><div><b>/tempi nome</b> · ultimi tempi e record</div><div><b>/annulla</b> · toglie il tuo ultimo inserimento</div><div><b>/aiuto</b> · tutti i comandi</div></div><div class="small muted">Si possono scrivere più righe in un messaggio, con kg (80kg), metri o ripetizioni (500m, 50rep) e tempi come 4:35, 3 min, 275s.</div></section>' +
       '<section class="card"><div class="eyebrow">File Excel settimanale</div><div class="small soft">Si carica da Dati → Importa, con la password della squadra.</div></section>';
   }
 
