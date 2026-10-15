@@ -341,7 +341,7 @@ svg text { font-family: var(--body) }
   function viewStaffetta() {
     var M = allModels(), F = formations(M), act = S.data.athletes.filter(function (a) { return a.active; });
     var h = '<div class="soft">Nella staffetta ognuna fa due corse da 1 km più una coppia di stazioni. Qui sotto le combinazioni più veloci con i tempi previsti a Rimini.</div>';
-    if (!F.length) { var have = 0; act.forEach(function (a) { ORDER.forEach(function (c) { if (!M[a.id][c].empty) have++; }); }); h += '<div class="notice">Per stimare la staffetta serve almeno una prova confrontabile di ogni stazione e della corsa per ciascuna ragazza. Al momento ne abbiamo ' + have + " su " + act.length * ORDER.length + ": la tabella qui sotto mostra cosa manca (–).</div>"; }
+    if (!F.length) { var have = 0; act.forEach(function (a) { ORDER.forEach(function (c) { if (!M[a.id][c].empty) have++; }); }); h += '<div class="notice">Per stimare la staffetta serve almeno una prova confrontabile di ogni stazione e della corsa per ciascuna atleta. Al momento ne abbiamo ' + have + " su " + act.length * ORDER.length + ": la tabella qui sotto mostra cosa manca (–).</div>"; }
     ["Formazione consigliata","Seconda opzione","Terza opzione"].forEach(function (t, i) {
       var f = F[i]; if (!f) return;
       h += '<section class="card" style="' + (i === 0 ? "border:2px solid var(--accent)" : "") + '"><div class="row between"><span class="eyebrow">' + t + '</span><span class="big" style="font-size:28px">' + fmt(f.total) + "</span></div>";
