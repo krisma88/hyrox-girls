@@ -264,7 +264,7 @@ svg text { font-family: var(--body) }
     act.forEach(function (a) { h += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">' + avatar(a, 56) + '<span class="small" style="font-weight:700">' + esc(a.display_name) + "</span></div>"; });
     h += "</div></section>";
     h += '<section class="card"><div class="eyebrow">Tempo staffetta previsto a Rimini</div><div class="big" style="font-size:42px">' + (F.length ? fmt(F[0].total) : "–") + '</div><div class="small soft">' + (F.length ? "Con la formazione migliore secondo i dati di oggi, transizioni escluse." : "Non ancora calcolabile: mancano prove su alcune stazioni.") + '</div><a class="btn" href="#staffetta" style="align-self:flex-start;display:inline-flex;align-items:center;text-decoration:none;color:var(--fg)">Vedi la staffetta</a></section>';
-    h += '<h2>Le ragazze</h2><div class="grid2">';
+    h += '<h2>Le atlete</h2><div class="grid2">';
     act.forEach(function (a) {
       var mine = S.data.results.filter(function (r) { return r.athlete_id === a.id; });
       var lastD = mine.reduce(function (m, r) { return r.performed_on > m ? r.performed_on : m; }, "");
